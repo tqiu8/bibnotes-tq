@@ -2,7 +2,7 @@
 import * as fs from "fs";
 import { Debugout } from "debugout.js";
 import ColorClassifier, { Palette, AlgorithmTypes } from "color-classifier"
-//import  Database from "better-sqlite3";
+//import Database from "better-sqlite3";
 //import DB from "better-sqlite3";
 
 //import { info, setLevel } from "loglevel";
@@ -35,6 +35,8 @@ import {
 import {
 	createAuthorKey,
 	createLocalFileLink,
+	createLocalFilePathLink,
+	createZoteroReaderPathLink,
 	createCreatorList,
 	createNoteTitle,
 	makeWiki,
@@ -404,8 +406,16 @@ export default class MyPlugin extends Plugin {
 		}
 
 		//create field file
-		//if (selectedEntry.hasOwnProperty("attachment.")){
 		selectedEntry.file = createLocalFileLink(selectedEntry);
+		//create field path field
+		selectedEntry.filePath = createLocalFilePathLink(selectedEntry);
+		//create Zotero reader path field
+		console.log(selectedEntry.filePath)
+		selectedEntry.zoteroReaderLink = createZoteroReaderPathLink(selectedEntry);
+		console.log(selectedEntry.zoteroReaderLink)
+
+
+
 		// Create an array with all the fields
 		const entriesArray = Object.keys(selectedEntry);
 
