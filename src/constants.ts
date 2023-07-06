@@ -137,6 +137,7 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
 	keyH6: "######",
 	keyKeyword: "=",
 	keyTask: "todo",
+	keyLookup: "lookup",
 	isHighlightItalic: true,
 	isHighlightBold: false,
 	isHighlightHighlighted: false,

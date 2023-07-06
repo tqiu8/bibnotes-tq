@@ -55,6 +55,7 @@ import { createImportSpecifier } from "typescript";
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
 	keyWordArray: string[];
+	lookupArray: string[];
 	pathZoteroStorage: string;
 	zoteroBuildWindows: boolean;
 	noteElements: AnnotationElements[];
@@ -1209,6 +1210,8 @@ export default class MyPlugin extends Plugin {
 				lineElements.annotationType = "typeTask";
 			} else if (colourTransformation.toLowerCase() === "task") {
 				lineElements.annotationType = "typeTask";
+			} else if (colourTransformation.toLowerCase() === "lookup") {
+				lineElements.annotationType = "typeLookup";
 			}
 		}
 
@@ -1271,6 +1274,7 @@ export default class MyPlugin extends Plugin {
 		//Create elements with subset of highlights/notes to be exported
 		const noteElementsArray: AnnotationElements[] = [];
 		const keywordArray: string[] = [];
+		const lookupArray: string[] = [];
 		const rowEditedArray: string[] = [];
 		//Create vector with annotation highlighted in different colour
 		const highlightsYellow: string[] = [];
@@ -1713,6 +1717,17 @@ export default class MyPlugin extends Plugin {
 
 			}
 
+			if (lineElements.annotationType == "typeLookup") {
+				lookupArray.push(
+					`- [R] ` +
+					lineElements.colourTemplateNoPrepend
+				);
+
+				lineElements.rowEdited = ""
+				//Add the line to an index of lines to be removed
+				indexRowsToBeRemoved.push(i);
+			}
+
 			//FORMAT KEYWORDS
 			// Add highlighted expression to KW
 			if (lineElements.annotationType === "typeKeyword") {
@@ -1798,6 +1813,7 @@ export default class MyPlugin extends Plugin {
 		const resultsLineElements = {
 			rowEditedArray: rowEditedArray,
 			keywordArray: keywordArray,
+			lookupArray: lookupArray,
 			highlightsYellow: highlightsYellow,
 			highlightsRed: highlightsRed,
 			highlightsGreen: highlightsGreen,
@@ -1831,6 +1847,7 @@ export default class MyPlugin extends Plugin {
 			keyH6,
 			keyKeyword,
 			keyTask,
+			keyLookup
 		} = this.settings;
 
 		//Take the lower cap version
@@ -1881,6 +1898,11 @@ export default class MyPlugin extends Plugin {
 			annotationCommentFirstWord === keyTask.toLowerCase()
 		) {
 			annotationType = "typeTask";
+		} else if (
+			annotationCommentAll === keyLookup.toLowerCase() ||
+			annotationCommentFirstWord === keyLookup.toLowerCase()
+		) {
+			annotationType = "typeLookup";
 		}
 		return annotationType;
 	}
@@ -2029,6 +2051,7 @@ export default class MyPlugin extends Plugin {
 			);
 
 			this.keyWordArray = resultsLineElements.keywordArray;
+			this.lookupArray = resultsLineElements.lookupArray;
 
 			//Create the annotation by merging the individial elements of rowEditedArray. Do the same for the colour
 			extractedAnnotations =
@@ -2071,6 +2094,7 @@ export default class MyPlugin extends Plugin {
 			extractedAnnotations: extractedAnnotations,
 			extractedUserNote: extractedUserNote,
 			extractedKeywords: this.keyWordArray,
+			extractedLookup: this.lookupArray,
 			extractedAnnotationsYellow: extractedAnnotationsYellow,
 			extractedAnnotationsRed: extractedAnnotationsRed,
 			extractedAnnotationsGreen: extractedAnnotationsGreen,
@@ -2606,6 +2630,11 @@ export default class MyPlugin extends Plugin {
 		if (extractedKeywords == undefined) {
 			extractedKeywords = [];
 		}
+
+		litnote = litnote.replace(
+			"{{Lookups}}",
+			resultAnnotations.extractedLookup.join("\n")
+		);
 
 		// Join the tags in the metadata with the tags extracted in the text and replace them in the text
 		litnote = replaceTagList(

@@ -31,6 +31,7 @@ export interface MyPluginSettings {
 	keyH6: string;
 	keyKeyword: string;
 	keyTask: string;
+	keyLookup: string;
 	lastUpdateDate: Date;
 	updateLibrary: string;
 	isHighlightItalic: boolean;

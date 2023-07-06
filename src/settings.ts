@@ -999,6 +999,27 @@ export class SettingTab extends PluginSettingTab {
 					})
 			);
 
+			new Setting(settingsAdvanced)
+			.setName("Transform the highlight/comment into a lookup task")
+			.addText((text) =>
+				text
+					// .setPlaceholder('%')
+					.setValue(settings.keyLookup)
+					.onChange(async (value) => {
+						//check if the value added is already assigned. If it is warn; otherwise save it
+						if (
+							Object.values(settings).indexOf(value) > -1
+						) {
+							alert(
+								"This value is already assigned to a different transformation. Chose a different value"
+							);
+						} else {
+							settings.keyLookup = value;
+							await plugin.saveSettings();
+						}
+					})
+			);
+
 		containerEl.createEl('h3', { text: 'Highlight Color' });
 		const settingsColour: HTMLDetailsElement =
 			containerEl.createEl("details");
