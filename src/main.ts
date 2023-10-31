@@ -51,6 +51,7 @@ import {
 	createCreatorAllList,
 	createAuthorKeyInitials,
 	createAuthorKeyFullName,
+	parseCiteKeyFromNoteName,
 } from "./utils";
 import { createImportSpecifier } from "typescript";
 
@@ -87,6 +88,16 @@ export default class MyPlugin extends Plugin {
 				new updateLibrary(this.app, this).open();
 			},
 		});
+
+		//Add Command to Update the current active note
+		this.addCommand({
+			id: "updateCurrentNote",
+			name: "Update Current Note",
+			callback: () => {
+				this.updateCurrentNote();
+			},
+		});
+
 	}
 
 	onunload() { }
@@ -158,7 +169,7 @@ export default class MyPlugin extends Plugin {
 		let highlightColouredAfter = ""
 
 		if (isHighlightColoured == true) {
-			highlightColouredBefore = '<mark style="background: SELECTED_COLOUR>'
+			highlightColouredBefore = '<mark style="background: SELECTED_COLOUR">'
 			highlightColouredAfter = "</mark>"
 		}
 
@@ -199,7 +210,7 @@ export default class MyPlugin extends Plugin {
 		let commentColouredAfter = ""
 
 		if (isCommentColoured == true) {
-			commentColouredBefore = '<mark style="background: SELECTED_COLOUR>'
+			commentColouredBefore = '<mark style="background: SELECTED_COLOUR">'
 			commentColouredAfter = "</mark>"
 		}
 
@@ -254,7 +265,7 @@ export default class MyPlugin extends Plugin {
 		let tagColouredAfter = ""
 
 		if (isTagColoured == true) {
-			tagColouredBefore = '<mark style="background: SELECTED_COLOUR>'
+			tagColouredBefore = '<mark style="background: SELECTED_COLOUR">'
 			tagColouredAfter = "</mark>"
 		}
 		const tagFormatBefore =
@@ -1400,8 +1411,8 @@ export default class MyPlugin extends Plugin {
 
 			// REPLACE COLOUR OF HIGHLIGHT/COMMENT/TAG IN THE HIGHLIGHTCOLOURED
 			const highlightFormatBeforeColoured = highlightFormatBefore.replace("SELECTED_COLOUR", lineElements.highlightColour + ";")
-			const commentFormatBeforeColoured = highlightFormatBefore.replace("SELECTED_COLOUR", lineElements.highlightColour + ";")
-			const tagFormatBeforeColoured = highlightFormatBefore.replace("SELECTED_COLOUR", lineElements.highlightColour + ";")
+			const commentFormatBeforeColoured = commentFormatBefore.replace("SELECTED_COLOUR", lineElements.highlightColour + ";")
+			const tagFormatBeforeColoured = tagFormatBefore.replace("SELECTED_COLOUR", lineElements.highlightColour + ";")
 
 
 			//FORMAT THE HEADINGS IDENTIFIED BY ZOTERO
@@ -1482,7 +1493,7 @@ export default class MyPlugin extends Plugin {
 			}
 
 			const TempTag = lineElements.inlineTagsArray
-				.map(i => tagPrepend + tagFormatBefore + i + tagFormatAfter);
+				.map(i => tagPrepend + tagFormatBeforeColoured + i + tagFormatAfter);
 			// if there are two tags, remove one
 
 			//format the tags so that only the hash sign is added only if there was not one already
@@ -1494,7 +1505,7 @@ export default class MyPlugin extends Plugin {
 
 
 			const TempTagNoPrepend = lineElements.inlineTagsArray
-				.map(i => tagFormatBefore + i + tagFormatAfter);
+				.map(i => tagFormatBeforeColoured + i + tagFormatAfter);
 			for (let index = 0; index < TempTagNoPrepend.length; index++) {
 				TempTagNoPrepend[index] = TempTagNoPrepend[index].replace("##", "#");
 				//if(this.settings.isTagHash==true){TempTagNoPrepend[index] = TempTagNoPrepend[index].replace(" ", "")}
@@ -2700,5 +2711,46 @@ export default class MyPlugin extends Plugin {
 		//const defaultRoot = path.join(homedir(), "Zotero");
 		//zoteroDbPath: path.join(defaultRoot, "zotero.sqlite"),
 
+	}
+
+	updateCurrentNote(){
+		console.log("Updating Current Note");
+
+		// Check if the json file exists
+		const jsonPath = this.app.vault.adapter.getBasePath() + "/" + this.settings.bibPath
+		if (!fs.existsSync(jsonPath)) { new Notice("No BetterBibTex Json file found at " + jsonPath) }
+
+		const rawdata = fs.readFileSync(
+			this.app.vault.adapter.getBasePath() +
+			"/" +
+			this.settings.bibPath
+		);
+		const data = JSON.parse(rawdata.toString()); // rawdata is a buffer, converted to strin
+
+		// Find the citeKey of current note in file name
+		const currentNoteName = this.app.workspace.getActiveFile().name
+		const noteTitleFormat = this.settings.exportTitle+'.md'
+
+		const citeKey = parseCiteKeyFromNoteName(currentNoteName, noteTitleFormat);
+	
+		if (citeKey != null){
+			// find entry in library using citeKey
+			const entryIndex = data.items.findIndex(
+				(item: { citationKey: string }) =>
+					item.citationKey ===
+					citeKey
+			);
+			if (entryIndex!=-1){
+				// update current note
+				const currentEntry:Reference = data.items[entryIndex]
+				this.createNote(currentEntry, data);
+				new Notice("Current Note " + currentNoteName + " updated");
+			}
+			else{
+				new Notice("Current Note " + currentNoteName + " not found in the library");
+			}
+		}else{
+			new Notice("Cannot find citeKey from Current Note:" + currentNoteName);
+		}
 	}
 }
