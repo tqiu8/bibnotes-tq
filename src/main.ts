@@ -410,9 +410,9 @@ export default class MyPlugin extends Plugin {
 		//create field path field
 		selectedEntry.filePath = createLocalFilePathLink(selectedEntry);
 		//create Zotero reader path field
-		console.log(selectedEntry.filePath)
+		// console.log(selectedEntry.filePath)
 		selectedEntry.zoteroReaderLink = createZoteroReaderPathLink(selectedEntry);
-		console.log(selectedEntry.zoteroReaderLink)
+		// console.log(selectedEntry.zoteroReaderLink)
 
 
 
@@ -1226,7 +1226,7 @@ export default class MyPlugin extends Plugin {
 		}
 
 		// Extract the colour template
-		const arr = ['{{highlight}}', '{{comment}}', '{{tag}}'];
+		const arr = ['{{highlight}}', '{{comment}}', '{{tag}}', '{{cite}}'];
 		const containsHighlightCommentTag = arr.some(element => {
 			if (colourTransformation.includes(element)) {
 				return true;
@@ -1518,15 +1518,13 @@ export default class MyPlugin extends Plugin {
 			}
 
 			//
-
 			//Extract from the setting the template for exporitng the highlight/comment/tag for different colours
 			if (typeof lineElements.colourTemplate == 'undefined') { lineElements.colourTemplate = this.settings.highlightExportTemplate }
-
 			if (lineElements.colourTemplate.length == 0) { lineElements.colourTemplate = "" }
-
 			lineElements.colourTemplateFormatted = lineElements.colourTemplate.replace("{{highlight}}", lineElements.highlightFormatted)
 			lineElements.colourTemplateFormatted = lineElements.colourTemplateFormatted.replace("{{comment}}", lineElements.commentFormatted)
 			lineElements.colourTemplateFormatted = lineElements.colourTemplateFormatted.replace("{{tag}}", lineElements.inlineTagsFormatted)
+			lineElements.colourTemplateFormatted = lineElements.colourTemplateFormatted.replace("{{cite}}", lineElements.citeKey)
 			//lineElements.colourTemplate = lineElements.colourTemplate + "\n"
 			lineElements.colourTemplateFormatted = lineElements.colourTemplateFormatted.replace(/^\s+/g, '');
 
@@ -1534,10 +1532,10 @@ export default class MyPlugin extends Plugin {
 			lineElements.colourTemplateNoPrepend = lineElements.colourTemplate.replace("{{highlight}}", lineElements.highlightFormattedNoPrepend)
 			lineElements.colourTemplateNoPrepend = lineElements.colourTemplateNoPrepend.replace("{{comment}}", lineElements.commentFormattedNoPrepend)
 			lineElements.colourTemplateNoPrepend = lineElements.colourTemplateNoPrepend.replace("{{tag}}", lineElements.inlineTagsFormattedNoPrepend)
+			lineElements.colourTemplateNoPrepend = lineElements.colourTemplateNoPrepend.replace("{{cite}}", lineElements.citeKey)
+
 			//lineElements.colourTemplate = lineElements.colourTemplate + "\n"
 			lineElements.colourTemplateNoPrepend = lineElements.colourTemplateNoPrepend.replace(/^\s+/g, '');
-
-
 
 			//FORMAT HIGHLIGHTED SENTENCES WITHOUT ANY COMMENT
 			//OR WITHOUT ANY SPECIAL CONSIDERATIONS
